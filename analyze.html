@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>THE BOYZ - Analyze Fish</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="icon" href="logo.png" />
+  <script defer src="auth-check.js" type="module"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <header>
+    <img src="logo.png" alt="THE BOYZ Logo" class="logo circular-logo" />
+    <h1>THE BOYZ - Fish Analyzer</h1>
+    <nav>
+      <a href="view.html" class="nav-btn">📸 View Catches</a>
+      <a href="index.html" class="nav-btn">🏠 Dashboard</a>
+      <a href="analyze.html" class="nav-btn">🔍 Search Fishes</a>
+      <button id="logoutBtn" class="nav-btn">🚪 Logout</button>
+    </nav>
+    <div id="user-info"></div>
+  </header>
+
+  <main style="text-align:center; padding: 2rem;">
+    <h2>🔍 Upload a Fish Image to Analyze</h2>
+    <input type="file" id="imageInput" accept="image/*" />
+    <br><br>
+    <button id="analyzeBtn">Analyze Fish</button>
+
+    <div id="outputBox" style="margin-top: 30px; display: none;">
+      <h3>📄 Analysis Result</h3>
+      <div id="resultCard" class="card"></div>
+    </div>
+  </main>
+
+  <!-- SCRIPT moved to bottom to ensure elements exist -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { firebaseConfig } from "./firebaseConfig.js";
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    // Wait until DOM is fully loaded
+    window.addEventListener("DOMContentLoaded", () => {
+      const analyzeBtn = document.getElementById("analyzeBtn");
+      console.log("DOM loaded ✅");
+      console.log("Analyze button:", document.getElementById("analyzeBtn"));
+
+      analyzeBtn.addEventListener("click", async () => {
+        const fileInput = document.getElementById('imageInput');
+        const file = fileInput.files[0];
+        console.log("Analyze button clicked ✅");
+        if (!file) {
+          alert("Please select an image first.");
+          return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = async () => {
+          const base64Image = reader.result.split(',')[1];
+          document.getElementById('outputBox').style.display = 'block';
+          document.getElementById('resultCard').innerHTML = "<p>🔄 Analyzing image...</p>";
+
+          try {
+            const res = await fetch("https://us-central1-geo-tagged-fish-catcher.cloudfunctions.net/analyzeFish", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ base64Image })
+            });
+
+            if (!res.ok) throw new Error(`Status ${res.status}`);
+            const data = await res.json();
+
+            document.getElementById('resultCard').innerHTML = formatGeminiResponse(data.result || "No result.");
+          } catch (err) {
+            document.getElementById('resultCard').innerHTML = `<p style="color:red;">❌ Error: ${err.message}</p>`;
+          }
+        };
+        reader.readAsDataURL(file);
+      });
+
+      // Gemini output formatter
+      function formatGeminiResponse(text) {
+        const lines = text.trim().split('\n');
+        let result = "<h4>🐟 Fish Information</h4>";
+
+        for (let line of lines) {
+          line = line.replace(/^[-*]+\s*/, "").replace(/\*\*(.*?)\*\*/g, "$1").replace(/\*(.*?)\*/g, "$1").replace(/\s*-\s*/, ": ");
+          if (!line.includes(":")) continue;
+
+          const [rawKey, ...rest] = line.split(":");
+          const key = rawKey.trim();
+          const value = rest.join(":").trim();
+
+          let icon = "";
+          if (/common name/i.test(key)) icon = "🔹";
+          else if (/scientific name/i.test(key)) icon = "🔬";
+          else if (/habitat/i.test(key)) icon = "🌍";
+          else if (/edibility|edible/i.test(key)) icon = "🍽️";
+
+          const danger = /poison|not edible|toxic/i.test(value.toLowerCase());
+
+          result += danger
+            ? `<div class="toxin-warning"><span class="label">${icon} ${key}:</span><br>${value}</div>`
+            : `<p><span class="label">${icon} ${key}:</span><br>${value}</p>`;
+        }
+
+        return result;
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AI Fish Identifier | THE BOYZ</title>
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- TensorFlow.js + MobileNet -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet"></script>
+
+  <style>
+    .card {
+      max-width: 600px;
+      background: #121212;
+      color: white;
+      margin: 6rem auto 3rem;
+      padding: 2rem;
+      border-radius: 15px;
+      box-shadow: 0 0 12px rgba(0, 255, 200, 0.2);
+      text-align: center;
+    }
+
+    .card h2 {
+      margin-bottom: 10px;
+      color: #00ffc3;
+    }
+
+    input[type="file"] {
+      margin-top: 1rem;
+      padding: 10px;
+      background: #222;
+      color: white;
+      border: 1px solid #00ffc3;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    #fishImage {
+      margin-top: 20px;
+      border-radius: 10px;
+      max-width: 100%;
+      box-shadow: 0 0 10px rgba(0,255,200,0.3);
+    }
+
+    #result {
+      font-size: 1.2rem;
+      color: #00ffc3;
+      margin-top: 20px;
+    }
+
+    nav {
+      background: #0f2027;
+      padding: 1rem;
+      position: fixed;
+      top: 0;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      z-index: 999;
+    }
+
+    nav a {
+      color: #fff;
+      text-decoration: none;
+      font-weight: bold;
+      transition: 0.3s;
+    }
+
+    nav a:hover {
+      color: #00ffc3;
+    }
+
+    .logout-btn {
+      background: #ff3c3c;
+      padding: 8px 12px;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-left: 10px;
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="index.html">Dashboard</a>
+    <a href="view.html">Catches</a>
+    <a href="search.html">🔍 Identify Fish</a>
+    <button class="logout-btn" onclick="logout()">Logout</button>
+  </nav>
+
+  <div class="card">
+    <h2>🎣 AI Fish Species Identifier</h2>
+    <p>Upload a fish photo to predict its species using AI</p>
+    <input type="file" accept="image/*" onchange="analyzeImage(event)" />
+    <img id="fishImage" />
+    <div id="result">Awaiting prediction...</div>
+  </div>
+
+  <script>
+    let model;
+
+    window.onload = async () => {
+      model = await mobilenet.load();
+      console.log("✅ MobileNet AI model loaded.");
+    };
+
+    async function analyzeImage(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const imgEl = document.getElementById('fishImage');
+      const reader = new FileReader();
+
+      reader.onload = function (e) {
+        imgEl.src = e.target.result;
+        imgEl.onload = async function () {
+          const predictions = await model.classify(imgEl);
+          const result = predictions[0];
+          document.getElementById('result').innerText =
+            `🐟 Predicted: ${result.className} (${(result.probability * 100).toFixed(1)}%)`;
+        };
+      };
+
+      reader.readAsDataURL(file);
+    }
+
+    function logout() {
+      localStorage.removeItem("user");
+      window.location.href = "login.html";
+    }
+  </script>
+</body>
+</html>
