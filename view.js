@@ -2,7 +2,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/fireba
 import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const app = initializeApp({
-  apiKey: "AIzaSyCY266pdkYHOnsznGa5gkc63eLDdUCfbQ4",
+  apiKey: "your-api-key",
   authDomain: "geo-tagged-fish-catcher.firebaseapp.com",
   projectId: "geo-tagged-fish-catcher"
 });
