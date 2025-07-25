@@ -19,7 +19,7 @@ https://geo-tagged-fish-catcher.web.app
 
 Watch Demo Video:  
 https://youtu.be/8rUu3qivW5Q?si=vZN8oOOHj0kpAXfj
-
+https://www.linkedin.com/posts/naveen-raj-karthi_hackathon-geotagging-firebase-activity-7352367446239911936-QUe5?utm_source=social_share_send&utm_medium=android_app&rcm=ACoAAFKABg0Bmehv2vy1kX5V5O9wRmQEAxL-D9s&utm_campaign=copy_link
 
 
 Features
